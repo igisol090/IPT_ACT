@@ -2,6 +2,16 @@
 
 <div class="container">
     <h1 class="text-center">Your Ordered T-Shirts</h1>
+
+    <nav>
+        <div class="view-orderedItems">
+            <a asp-action="OrderedItems" asp-controller="TShirt" title="View your ordered items">
+                <img src="~/css/cart-icon.png" alt="View Ordered Items" />
+            </a>
+        </div>
+    </nav>
+
+
     <div class="row">
         @if (Model.Any())
         {
@@ -14,9 +24,14 @@
                             <h5 class="card-title">@orderedTShirt.Product</h5>
                             <p class="card-text">Quantity: @orderedTShirt.Quantity</p>
                             <p class="card-text">Price: @orderedTShirt.TotalPrice.ToString("C")</p>
-                            <form method="post" asp-action="DeleteOrderedItem" asp-route-id="@orderedTShirt.Id">
-                                <button type="submit" class="btn btn-danger">Delete</button>
-                            </form>
+
+                            <div class="button-group">
+                                <a asp-action="Edit" asp-controller="TShirt" asp-route-id="@orderedTShirt.Id" class="btn btn-warning">Edit</a>
+
+                                <form method="post" asp-action="DeleteOrderedItem" asp-route-id="@orderedTShirt.Id" style="display:inline;">
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -29,4 +44,42 @@
             </div>
         }
     </div>
+
+    <form method="post" asp-action="PurchaseAll" style="text-align: center; margin-bottom: 20px;">
+        <button type="submit" class="btn btn-primary">Purchase All Items</button>
+    </form>
 </div>
+
+<style>
+        .container {
+        margin-top: 100px;
+    }
+
+    nav {
+        position: fixed;
+        top: -5px;
+        right: 0;
+        margin: 5px;
+        background-color: lightblue;
+        width: 100%;
+        padding: 10px;
+        z-index: 10;
+    }
+
+    .view-orderedItems {
+       width: 100%;
+       display: flex;
+       justify-content: right;
+    }
+
+    .view-orderedItems img {
+        width: 30px;
+        cursor: pointer;
+    }
+
+    .button-group {
+        display: flex; /* Use flexbox for alignment */
+        justify-content: center; /* Center buttons in the card */
+        gap: 10px; /* Space between buttons */
+    }
+</style>

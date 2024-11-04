@@ -2,6 +2,15 @@
 
 <div class="container">
     <h1 class="text-center">Thrift</h1>
+
+    <nav>
+        <div class="view-orderedItems">
+            <a asp-action="OrderedItems" asp-controller="TShirt" title="View your ordered items">
+                <img src="~/css/cart-icon.png" alt="View Ordered Items" />
+            </a>
+        </div>
+    </nav>
+
     <div class="row">
         @if (Model.Any())
         {
@@ -29,3 +38,31 @@
         }
     </div>
 </div>
+
+<style>
+    .container {
+        margin-top: 100px;
+    }
+
+    nav {
+        position: fixed;
+        top: -5px;
+        right: 0;
+        margin: 5px;
+        background-color: lightblue;
+        width: 100%;
+        padding: 10px;
+        z-index: 10;
+    }
+
+    .view-orderedItems {
+       width: 100%;
+       display: flex;
+       justify-content: right;
+    }
+
+    .view-orderedItems img {
+        width: 30px;
+        cursor: pointer;
+    }
+</style>

@@ -42,26 +42,29 @@ namespace OrderingSystem.Controllers
         {
             if (id == null) return NotFound();
 
-            var tShirt = await _context.TShirts.FindAsync(id);
-            if (tShirt == null) return NotFound();
+            var orderedTShirt = await _context.OrderedTShirts.FindAsync(id); // Use orderedTShirt here
+            if (orderedTShirt == null) return NotFound();
 
-            return View(tShirt);
+            return View("Edit", orderedTShirt); // Return the orderedTShirt to the view
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, TShirt tShirt)
+        public async Task<IActionResult> Edit(int id, OrderedTShirt orderedTShirt)
         {
-            if (id != tShirt.Id) return NotFound();
+            if (id != orderedTShirt.Id) return NotFound();
 
             if (ModelState.IsValid)
             {
-                _context.Update(tShirt);
+                _context.Update(orderedTShirt);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(OrderedItems));
             }
-            return View(tShirt);
+
+            return View( "Edit" ,orderedTShirt); // Return the view with the current model if validation fails
         }
+
+
 
         public async Task<IActionResult> Delete(int? id)
         {
@@ -103,6 +106,11 @@ namespace OrderingSystem.Controllers
 
             return RedirectToAction(nameof(OrderedItems)); // Redirect to the OrderedItems view
         }
+
+        public IActionResult ViewOrderedItems()
+{
+    return RedirectToAction(nameof(OrderedItems));
+}
 
 
         // Increment Quantity

@@ -27,6 +27,10 @@ app.UseRouting();
 
 app.UseAuthorization();
 
+app.MapControllerRoute(
+    name: "edit",
+    pattern: "{controller=TShirt}/{action=Edit}/{id:int}");
+
 
 app.MapControllerRoute(
     name: "default",
