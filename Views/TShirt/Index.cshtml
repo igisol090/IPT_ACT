@@ -1,0 +1,31 @@
+﻿@model IEnumerable<OrderingSystem.Models.TShirt>
+
+<div class="container">
+    <h1 class="text-center">Thrift</h1>
+    <div class="row">
+        @if (Model.Any())
+        {
+            foreach (var tShirt in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="@Url.Content("~/css/" + tShirt.Image)" class="card-img-top" alt="Image" />
+                        <div class="card-body text-center">
+                            <h5 class="card-title">@tShirt.Product</h5>
+                            <p class="card-text">Price: @tShirt.TotalPrice.ToString("C")</p>
+                            <form method="post" asp-action="PlaceOrder" asp-route-id="@tShirt.Id">
+                                <button type="submit" class="btn btn-success">Place Order</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-md-6 offset-md-3 mb-4 text-center">
+                <p>No T-Shirts available. Please check back later!</p>
+            </div>
+        }
+    </div>
+</div>
