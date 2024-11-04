@@ -1,0 +1,34 @@
+﻿@model IEnumerable<OrderingSystem.Models.OrderedTShirt>
+
+<div class="receipt-container">
+    <h2>Order Receipt</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                decimal grandTotal = 0;
+            }
+            @foreach (var item in Model)
+            {
+                var lineTotal = item.Quantity * item.TotalPrice;
+                grandTotal += lineTotal;
+                <tr>
+                    <td>@item.Product</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.TotalPrice.ToString("C")</td>
+                    <td>@lineTotal.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="grand-total">
+        <strong>Grand Total: @grandTotal.ToString("C")</strong>
+    </div>
+</div>
