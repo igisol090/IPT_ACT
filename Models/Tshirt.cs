@@ -38,6 +38,11 @@ namespace OrderingSystem.Models
 
         [Required]
         [DataType(DataType.Currency)]
-        public decimal TotalPrice { get; set; }
+        public decimal TotalPrice { get; set; } // Will be calculated based on Quantity and Price
+
+        public void UpdateTotalPrice()
+        {
+            TotalPrice = Price * Quantity;
+        }
     }
 }

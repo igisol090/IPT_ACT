@@ -47,7 +47,7 @@ namespace OrderingSystem.Controllers
             {
                 // If the T-shirt is already in the cart, increase the quantity
                 existingOrder.Quantity += quantity; // Add the passed quantity to the current quantity
-                existingOrder.TotalPrice = existingOrder.Quantity * tShirt.TotalPrice; // Recalculate total price
+                existingOrder.TotalPrice = existingOrder.Quantity * tShirt.Price; // Recalculate total price
             }
             else
             {
@@ -57,7 +57,8 @@ namespace OrderingSystem.Controllers
                     Product = tShirt.Product,
                     Quantity = quantity,
                     Image = tShirt.Image,
-                    TotalPrice = tShirt.TotalPrice * quantity // Calculate total price based on quantity
+                    Price = tShirt.Price,
+                    TotalPrice = tShirt.Price * quantity // Correct total price calculation
                 };
                 _context.OrderedTShirts.Add(orderedTShirt);
             }
@@ -69,32 +70,70 @@ namespace OrderingSystem.Controllers
             return RedirectToAction(nameof(OrderedItems));
         }
 
+        // Edit an Ordered T-shirt
 
-
-        public IActionResult Edit(int id)
-        {
-            var orderedTShirt = _context.OrderedTShirts.Find(id); // Fetch OrderedTShirt by Id
-            if (orderedTShirt == null)
+            // GET: Edit
+            public async Task<IActionResult> Edit(int? id)
             {
-                return NotFound();
-            }
-            return View(orderedTShirt); // Pass OrderedTShirt to the view
-        }
+                if (id == null)
+                {
+                    return NotFound();
+                }
 
-        [HttpPost]
-        public IActionResult Edit(OrderedTShirt model)
-        {
-            if (ModelState.IsValid)
+                var orderedTShirt = await _context.OrderedTShirts.FindAsync(id);
+                if (orderedTShirt == null)
+                {
+                    return NotFound();
+                }
+
+                return View(orderedTShirt);  // Pass the model to the Edit view
+            }
+
+            // POST: Edit
+            [HttpPost]
+            [ValidateAntiForgeryToken]
+            public async Task<IActionResult> Edit(int id, [Bind("Id,Product,Quantity,Price,TotalPrice")] OrderedTShirt orderedTShirt)
             {
-                _context.Update(model); // Update the OrderedTShirt entity
-                _context.SaveChanges();
-                return RedirectToAction(nameof(Index));
+                if (id != orderedTShirt.Id)
+                {
+                    return NotFound();
+                }
+
+                if (ModelState.IsValid)
+                {
+                    try
+                    {
+                        // Recalculate the total price
+                        orderedTShirt.TotalPrice = orderedTShirt.Quantity * orderedTShirt.Price;
+
+                        // Update the ordered t-shirt in the database
+                        _context.Update(orderedTShirt);
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (DbUpdateConcurrencyException)
+                    {
+                        if (!OrderedTShirtExists(orderedTShirt.Id))
+                        {
+                            return NotFound();
+                        }
+                        else
+                        {
+                            throw;
+                        }
+                    }
+
+                    // After the update, redirect to the list of ordered items (or Index page)
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // If validation failed, return to the Edit view with the current data
+                return View(orderedTShirt);
             }
-            return View(model); // Return to the view with validation errors
-        }
 
-
-
+            private bool OrderedTShirtExists(int id)
+            {
+                return _context.OrderedTShirts.Any(e => e.Id == id);
+            }
 
         // Delete a T-shirt from the cart
         [HttpPost]
@@ -122,7 +161,6 @@ namespace OrderingSystem.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(OrderedItems));
         }
-
 
         // Decrement quantity of a T-shirt in the cart
         [HttpPost]
