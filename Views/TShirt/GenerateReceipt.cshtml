@@ -1,4 +1,4 @@
-﻿@model IEnumerable<OrderingSystem.Models.OrderedTShirt>
+﻿@model IEnumerable<OrderingSystem.Models.TShirt>
 @{
     ViewData["Title"] = "Receipt";
 }
@@ -22,18 +22,18 @@
         <tbody>
             @foreach (var item in Model)
             {
-                var lineTotal = item.Quantity * item.TotalPrice; // Adjust this calculation if needed
                 <tr>
                     <td>@item.Product</td>
                     <td>@item.Quantity</td>
+                    <td>@item.Price.ToString("C")</td>
                     <td>@item.TotalPrice.ToString("C")</td>
-                    <td>@lineTotal.ToString("C")</td>
                 </tr>
             }
         </tbody>
     </table>
 
-    <h4>Total Amount: @ViewBag.TotalAmount.ToString("C")</h4>
+    <!-- Display the total amount for all T-Shirts in the cart -->
+    <h4>Total Amount: @Model.Sum(t => t.TotalPrice).ToString("C")</h4>
 
     <div class="text-center">
         <a asp-action="Index" class="btn btn-primary">Return to Home</a>
