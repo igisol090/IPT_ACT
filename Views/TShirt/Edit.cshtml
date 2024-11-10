@@ -1,4 +1,4 @@
-﻿@model OrderingSystem.Models.TShirt
+﻿@model OrderingSystem.Models.OrderedTShirt
 
 <h2>Edit T-Shirt</h2>
 
@@ -7,26 +7,29 @@
 
     <div class="form-group">
         <label asp-for="Product"></label>
-        <input asp-for="Product" class="form-control" />
+        <input asp-for="Product" class="form-control" readonly />
         <span asp-validation-for="Product" class="text-danger"></span>
     </div>
+
     <div class="form-group">
         <label asp-for="Quantity"></label>
         <div class="input-group">
-            <button type="submit" formaction="@Url.Action("DecrementQuantity", "TShirt", new { id = Model.Id })" class="btn btn-thirtiary">-</button>
-            <input asp-for="Quantity" class="form-control text-center" readonly />
-            <button type="submit" formaction="@Url.Action("IncrementQuantity", "TShirt", new { id = Model.Id })" class="btn btn-thirtiary">+</button>
+            <button type="button" class="btn btn-thirtiary" id="decrementBtn">-</button>
+            <input asp-for="Quantity" class="form-control text-center" id="quantityInput" readonly />
+            <button type="button" class="btn btn-thirtiary" id="incrementBtn">+</button>
         </div>
         <span asp-validation-for="Quantity" class="text-danger"></span>
     </div>
-    <div class="form-group">
+    <!--    <div class="form-group">
         <label asp-for="Price"></label>
-        <input asp-for="Price" class="form-control" />
+        <input asp-for="Price" class="form-control" id="priceInput" readonly />
         <span asp-validation-for="Price" class="text-danger"></span>
-    </div>
+    </div>-->
+
+
     <div class="form-group">
         <label>Total Price</label>
-        <input type="text" value="@Model.TotalPrice.ToString("C")" class="form-control" readonly />
+        <input type="text" id="totalPrice" value="@Model.TotalPrice.ToString("C")" class="form-control" readonly />
     </div>
 
     <div class="buttons">
@@ -35,43 +38,87 @@
     </div>
 </form>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const quantityInput = document.getElementById('quantityInput');
+        const priceInput = document.getElementById('priceInput');
+        const totalPriceInput = document.getElementById('totalPrice');
+        const decrementBtn = document.getElementById('decrementBtn');
+        const incrementBtn = document.getElementById('incrementBtn');
+
+        // Initial values from the model
+        let quantity = parseInt(quantityInput.value, 10);
+
+        // Ensure we get a clean numeric value from the price input (removes any currency formatting)
+        let price = parseFloat(priceInput.value.replace(/[^0-9.-]+/g, ""));
+
+        // Function to update the total price immediately
+        function updateTotalPrice() {
+            const totalPrice = quantity * price;
+            totalPriceInput.value = totalPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        }
+
+        // Event listener for decrement button
+        decrementBtn.addEventListener('click', function () {
+            if (quantity > 1) {
+                quantity--; // Decrement quantity
+                quantityInput.value = quantity; // Update the input field
+                updateTotalPrice(); // Recalculate total price
+            }
+        });
+
+        // Event listener for increment button
+        incrementBtn.addEventListener('click', function () {
+            quantity++; // Increment quantity
+            quantityInput.value = quantity; // Update the input field
+            updateTotalPrice(); // Recalculate total price
+        });
+
+        // Initialize total price on page load
+        updateTotalPrice();
+    });
+</script>
+
 <style>
-
     .input-group {
-        display: flex;
-        align-items: center; /* Vertically center the contents */
-        justify-content: center; /* Center the input group horizontally */
-        text-align: center;
-        width: 150px; /* Adjust width based on content */
-        margin: 0;
-        padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 150px;
+    margin: 0;
+    padding: 0;
     }
 
-    .input-group input {
-        text-align: center;
-        margin: 0;
-    }
+        .input-group input {
+            text-align: center;
+            margin: 0;
+        }
 
     .btn.btn-thirtiary {
-        background-color: gray;
-        color: white;
-        height: 38px; /* Match this to the height of the input */
-        width: 38px; /* Make button width match height for square shape */
-        padding: 0; /* Remove default padding for buttons */
-        margin: 0; /* Remove margins for perfect alignment */
-        display: flex; /* Center text inside buttons */
-        align-items: center;
-        justify-content: center;
+    background-color: gray;
+    color: white;
+    height: 38px;
+    width: 38px;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     }
 
     .form-control {
-        text-align: left; /* Center text inside the input field */
-        height: 38px; /* Match input height with button height */
-        width: 100%; /* Adjust width as needed */
-        margin: 0 5px; /* Add some margin between the input and buttons */
+    text-align: left;
+    height: 38px;
+    width: 100%;
+    margin: 0 5px;
     }
 
     .buttons {
-        margin-top: 30px;
+    margin-top: 30px;
     }
 </style>
+
+
+
+

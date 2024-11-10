@@ -22,8 +22,29 @@
                         <div class="card-body text-center">
                             <h5 class="card-title">@tShirt.Product</h5>
                             <p class="card-text">Price: @tShirt.TotalPrice.ToString("C")</p>
+
+                            <!-- Hidden field to track the quantity for the form -->
                             <form method="post" asp-action="PlaceOrder" asp-route-id="@tShirt.Id">
-                                <button type="submit" class="btn btn-success">Place Order</button>
+                                <div class="input-group">
+                                    <input type="hidden" name="quantity" id="orderQuantity-@tShirt.Id" value="1" readonly class="form-control" />
+
+                                    <div class="price-container">
+                                        <label for="orderTotalPrice-@tShirt.Id" class="form-label">Total Price</label>
+                                        <span id="orderTotalPrice-@tShirt.Id" class="form-control-plaintext">
+                                            @tShirt.TotalPrice.ToString("C")
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Buttons to adjust quantity -->
+                                <div class="button-group mt-3">
+                                    <button type="button" class="btn btn-thirtiary btn-quantity" onclick="decrementQuantity(@tShirt.Id, @tShirt.Price)">-</button>
+                                    <input type="text" id="quantity-@tShirt.Id" class="form-control text-center btn-quantity" value="1" readonly />
+                                    <button type="button" class="btn btn-thirtiary btn-quantity" onclick="incrementQuantity(@tShirt.Id, @tShirt.Price)">+</button>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <button type="submit" class="btn btn-success mt-3">Place Order</button>
                             </form>
                         </div>
                     </div>
@@ -56,13 +77,105 @@
     }
 
     .view-orderedItems {
-       width: 100%;
-       display: flex;
-       justify-content: right;
+        width: 100%;
+        display: flex;
+        justify-content: right;
     }
 
-    .view-orderedItems img {
-        width: 30px;
-        cursor: pointer;
+        .view-orderedItems img {
+            width: 30px;
+            cursor: pointer;
+        }
+
+    .button-group {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-quantity {
+        height: 40px; /* Make sure button height matches input */
+        padding: 0 15px; /* Adjust padding to make it more uniform */
+        font-size: 20px; /* Ensure font size is the same */
+        line-height: 1; /* Adjust line height to align text properly */
+        display: flex; /* Ensure proper alignment inside buttons */
+        justify-content: center;
+        align-items: center;
+    }
+
+    .form-control {
+        height: 40px; /* Ensure input height matches buttons */
+        font-size: 20px; /* Same font size for uniformity */
+        width: 100px;
+        text-align: center;
+    }
+
+
+    /* Style for the readonly input fields to make them look like labels */
+    input[readonly] {
+        background-color: #f8f9fa; /* Light grey background */
+        border: 1px solid #ccc; /* Border to differentiate it from editable fields */
+    }
+
+    /* Optional: Style labels */
+    .form-label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+        width: 300px;
+        margin: 0;
+        padding: 0;
+        color: #555;
+    }
+
+    .price-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+
+    /* Style for the Total Price span */
+    .form-control-plaintext {
+        display: block;
+        padding: 0;
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #555;
+        margin: 0;
     }
 </style>
+
+<script>
+    // Function to increment the quantity and update the hidden field and total price
+    function incrementQuantity(tShirtId, price) {
+        var quantityInput = document.getElementById("quantity-" + tShirtId);
+        var quantity = parseInt(quantityInput.value); // Get current quantity
+        quantityInput.value = quantity + 1; // Increment the quantity
+
+        // Update the hidden quantity field in the form
+        document.getElementById("orderQuantity-" + tShirtId).value = quantity + 1;
+
+        // Update the total price in the Total Price span (calculate new total)
+        var totalPrice = (quantity + 1) * price; // Calculate new total price
+        document.getElementById("orderTotalPrice-" + tShirtId).innerText = totalPrice.toFixed(2); // Update the displayed total price
+    }
+
+    // Function to decrement the quantity and update the hidden field and total price
+    function decrementQuantity(tShirtId, price) {
+        var quantityInput = document.getElementById("quantity-" + tShirtId);
+        var quantity = parseInt(quantityInput.value); // Get current quantity
+
+        if (quantity > 1) {
+            quantityInput.value = quantity - 1; // Decrement the quantity
+
+            // Update the hidden quantity field in the form
+            document.getElementById("orderQuantity-" + tShirtId).value = quantity - 1;
+
+            // Update the total price in the Total Price span (calculate new total)
+            var totalPrice = (quantity - 1) * price; // Calculate new total price
+            document.getElementById("orderTotalPrice-" + tShirtId).innerText = totalPrice.toFixed(2); // Update the displayed total price
+        }
+    }
+</script>

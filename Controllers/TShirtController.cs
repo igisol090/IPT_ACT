@@ -32,7 +32,7 @@ namespace OrderingSystem.Controllers
 
         // Add a T-shirt to the cart (OrderedTShirts)
         [HttpPost]
-        public async Task<IActionResult> PlaceOrder(int id)
+        public async Task<IActionResult> PlaceOrder(int id, int quantity) // Add quantity to the parameters
         {
             // Find the selected T-shirt based on the ID
             var tShirt = await _context.TShirts.FindAsync(id);
@@ -42,21 +42,22 @@ namespace OrderingSystem.Controllers
             var existingOrder = await _context.OrderedTShirts
                 .FirstOrDefaultAsync(o => o.Product == tShirt.Product && o.Image == tShirt.Image); // Check both Product and Image
 
+            // Update the order if it already exists, or create a new order
             if (existingOrder != null)
             {
-                // If the T-shirt is already in the cart, increase the quantity and update the price
-                existingOrder.Quantity++;
-                existingOrder.TotalPrice += tShirt.TotalPrice;
+                // If the T-shirt is already in the cart, increase the quantity
+                existingOrder.Quantity += quantity; // Add the passed quantity to the current quantity
+                existingOrder.TotalPrice = existingOrder.Quantity * tShirt.TotalPrice; // Recalculate total price
             }
             else
             {
-                // If the T-shirt is not in the cart, create a new ordered item
+                // If the T-shirt is not in the cart, create a new ordered item with the specified quantity
                 var orderedTShirt = new OrderedTShirt
                 {
                     Product = tShirt.Product,
-                    Quantity = 1,
+                    Quantity = quantity,
                     Image = tShirt.Image,
-                    TotalPrice = tShirt.TotalPrice
+                    TotalPrice = tShirt.TotalPrice * quantity // Calculate total price based on quantity
                 };
                 _context.OrderedTShirts.Add(orderedTShirt);
             }
@@ -66,6 +67,30 @@ namespace OrderingSystem.Controllers
 
             // Redirect to the OrderedItems page to show the updated cart
             return RedirectToAction(nameof(OrderedItems));
+        }
+
+
+
+        public IActionResult Edit(int id)
+        {
+            var orderedTShirt = _context.OrderedTShirts.Find(id); // Fetch OrderedTShirt by Id
+            if (orderedTShirt == null)
+            {
+                return NotFound();
+            }
+            return View(orderedTShirt); // Pass OrderedTShirt to the view
+        }
+
+        [HttpPost]
+        public IActionResult Edit(OrderedTShirt model)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Update(model); // Update the OrderedTShirt entity
+                _context.SaveChanges();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(model); // Return to the view with validation errors
         }
 
 
