@@ -1,8 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DinkToPdf;
+using DinkToPdf.Contracts;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using OrderingSystem.Data;
 using OrderingSystem.Models;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,37 +17,19 @@ namespace OrderingSystem.Controllers
     public class TShirtController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IConverter _converter;
+        private readonly ICompositeViewEngine _viewEngine;
 
-        public TShirtController(ApplicationDbContext context)
+        // Field to keep track of the receipt number
+        private static int _receiptNumber = 1;
+
+        public TShirtController(ApplicationDbContext context, IConverter converter, ICompositeViewEngine viewEngine)
         {
             _context = context;
+            _converter = converter;
+            _viewEngine = viewEngine;
         }
 
-        public IActionResult GenerateReceipt()
-        {
-            // Fetch ordered T-shirts from the database
-            var orderedTShirts = _context.OrderedTShirts.ToList();
-
-            // Calculate the receipt details here if needed and pass it to the view
-            return View(orderedTShirts);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> PurchaseAll()
-        {
-            var orderedTShirts = await _context.OrderedTShirts.ToListAsync();
-
-            // Optional: Process the purchase logic here (e.g., save to order history, clear the ordered items)
-            // For example, you might want to remove the ordered items after purchase
-            // _context.OrderedTShirts.RemoveRange(orderedTShirts);
-            // await _context.SaveChangesAsync();
-
-            // Return the GenerateReceipt view with the ordered T-shirts
-            return View("GenerateReceipt", orderedTShirts);
-        }
-
-        // Other actions like Index, Create, Edit, etc., remain unchanged
         public async Task<IActionResult> Index()
         {
             return View(await _context.TShirts.ToListAsync());
@@ -69,26 +57,26 @@ namespace OrderingSystem.Controllers
         {
             if (id == null) return NotFound();
 
-            var orderedTShirt = await _context.OrderedTShirts.FindAsync(id);
-            if (orderedTShirt == null) return NotFound();
+            var tShirt = await _context.TShirts.FindAsync(id);
+            if (tShirt == null) return NotFound();
 
-            return View("Edit", orderedTShirt);
+            return View(tShirt);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, OrderedTShirt orderedTShirt)
+        public async Task<IActionResult> Edit(int id, TShirt tShirt)
         {
-            if (id != orderedTShirt.Id) return NotFound();
+            if (id != tShirt.Id) return NotFound();
 
             if (ModelState.IsValid)
             {
-                _context.Update(orderedTShirt);
+                _context.Update(tShirt);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(OrderedItems));
+                return RedirectToAction(nameof(Index));
             }
 
-            return View("Edit", orderedTShirt);
+            return View(tShirt);
         }
 
         public async Task<IActionResult> Delete(int? id)
@@ -103,6 +91,7 @@ namespace OrderingSystem.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // Action to view ordered T-Shirts
         public async Task<IActionResult> OrderedItems()
         {
             var orderedTShirts = await _context.OrderedTShirts.ToListAsync();
@@ -111,66 +100,47 @@ namespace OrderingSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> PlaceOrder(int id)
+        public async Task<IActionResult> PurchaseAll(string billingName, string billingAddress)
         {
-            var tShirt = await _context.TShirts.FindAsync(id);
-            if (tShirt == null) return NotFound();
+            var orderedTShirts = await _context.OrderedTShirts.ToListAsync();
+            var todayDate = DateTime.Now.ToString("MMMM dd, yyyy");
+            var receiptNumber = _receiptNumber++;
 
-            var orderedTShirt = new OrderedTShirt
+            // Calculate total amount
+            var totalAmount = orderedTShirts.Sum(t => t.TotalPrice);
+
+            // Pass data to the view using ViewBag
+            ViewBag.BillingName = billingName;
+            ViewBag.BillingAddress = billingAddress;
+            ViewBag.ReceiptNumber = receiptNumber;
+            ViewBag.TodayDate = todayDate;
+            ViewBag.TotalAmount = totalAmount;
+
+            return View("GenerateReceipt", orderedTShirts);
+        }
+
+        private string RenderRazorViewToString(string viewName, object model)
+        {
+            ViewData.Model = model;
+            using (var sw = new StringWriter())
             {
-                Product = tShirt.Product,
-                Quantity = 1,
-                Image = tShirt.Image,
-                TotalPrice = tShirt.TotalPrice
-            };
+                var viewResult = _viewEngine.FindView(ControllerContext, viewName, true);
+                if (viewResult.View == null)
+                {
+                    throw new ArgumentNullException(nameof(viewResult.View), "View cannot be found.");
+                }
 
-            _context.OrderedTShirts.Add(orderedTShirt);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(OrderedItems));
-        }
-
-        public IActionResult ViewOrderedItems()
-        {
-            return RedirectToAction(nameof(OrderedItems));
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> IncrementQuantity(int id)
-        {
-            var orderedItem = await _context.OrderedTShirts.FindAsync(id);
-            if (orderedItem == null) return NotFound();
-
-            orderedItem.Quantity++;
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(OrderedItems));
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> DecrementQuantity(int id)
-        {
-            var orderedItem = await _context.OrderedTShirts.FindAsync(id);
-            if (orderedItem == null) return NotFound();
-
-            if (orderedItem.Quantity > 0)
-                orderedItem.Quantity--;
-
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(OrderedItems));
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> DeleteOrderedItem(int id)
-        {
-            var orderedItem = await _context.OrderedTShirts.FindAsync(id);
-            if (orderedItem == null) return NotFound();
-
-            _context.OrderedTShirts.Remove(orderedItem);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(OrderedItems));
+                var viewContext = new ViewContext(
+                    ControllerContext,
+                    viewResult.View,
+                    ViewData,
+                    TempData,
+                    sw,
+                    new HtmlHelperOptions() // Create a new HtmlHelperOptions instance
+                );
+                viewResult.View.RenderAsync(viewContext);
+                return sw.ToString();
+            }
         }
     }
 }

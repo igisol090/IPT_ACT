@@ -1,7 +1,15 @@
 ﻿@model IEnumerable<OrderingSystem.Models.OrderedTShirt>
+@{
+    ViewData["Title"] = "Receipt";
+}
 
-<div class="receipt-container">
-    <h2>Order Receipt</h2>
+<div class="container">
+    <h1 class="text-center">Receipt</h1>
+    <h2>Billing Name: @ViewBag.BillingName</h2>
+    <h3>Billing Address: @ViewBag.BillingAddress</h3>
+    <h4>Receipt Number: @ViewBag.ReceiptNumber</h4>
+    <h5>Date: @ViewBag.TodayDate</h5>
+
     <table class="table">
         <thead>
             <tr>
@@ -12,13 +20,9 @@
             </tr>
         </thead>
         <tbody>
-            @{
-                decimal grandTotal = 0;
-            }
             @foreach (var item in Model)
             {
-                var lineTotal = item.Quantity * item.TotalPrice;
-                grandTotal += lineTotal;
+                var lineTotal = item.Quantity * item.TotalPrice; // Adjust this calculation if needed
                 <tr>
                     <td>@item.Product</td>
                     <td>@item.Quantity</td>
@@ -28,7 +32,10 @@
             }
         </tbody>
     </table>
-    <div class="grand-total">
-        <strong>Grand Total: @grandTotal.ToString("C")</strong>
+
+    <h4>Total Amount: @ViewBag.TotalAmount.ToString("C")</h4>
+
+    <div class="text-center">
+        <a asp-action="Index" class="btn btn-primary">Return to Home</a>
     </div>
 </div>
