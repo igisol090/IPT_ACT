@@ -20,11 +20,11 @@
         </div>
         <span asp-validation-for="Quantity" class="text-danger"></span>
     </div>
-    <!--    <div class="form-group">
+     <div class="form-group">
         <label asp-for="Price"></label>
         <input asp-for="Price" class="form-control" id="priceInput" readonly />
         <span asp-validation-for="Price" class="text-danger"></span>
-    </div>-->
+    </div>
 
 
     <div class="form-group">
@@ -46,13 +46,11 @@
         const decrementBtn = document.getElementById('decrementBtn');
         const incrementBtn = document.getElementById('incrementBtn');
 
-        // Initial values from the model
-        let quantity = parseInt(quantityInput.value, 10);
+        // Ensure initial values are numbers; default to 1 for quantity if not valid
+        let quantity = parseInt(quantityInput.value, 10) || 1;
+        let price = parseFloat(priceInput.value.replace(/[^0-9.-]+/g, "")) || 0;
 
-        // Ensure we get a clean numeric value from the price input (removes any currency formatting)
-        let price = parseFloat(priceInput.value.replace(/[^0-9.-]+/g, ""));
-
-        // Function to update the total price immediately
+        // Function to update the total price and display it in the correct format
         function updateTotalPrice() {
             const totalPrice = quantity * price;
             totalPriceInput.value = totalPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
@@ -61,17 +59,17 @@
         // Event listener for decrement button
         decrementBtn.addEventListener('click', function () {
             if (quantity > 1) {
-                quantity--; // Decrement quantity
-                quantityInput.value = quantity; // Update the input field
-                updateTotalPrice(); // Recalculate total price
+                quantity--; // Decrease quantity
+                quantityInput.value = quantity; // Update input field value
+                updateTotalPrice(); // Recalculate and display total price
             }
         });
 
         // Event listener for increment button
         incrementBtn.addEventListener('click', function () {
-            quantity++; // Increment quantity
-            quantityInput.value = quantity; // Update the input field
-            updateTotalPrice(); // Recalculate total price
+            quantity++; // Increase quantity
+            quantityInput.value = quantity; // Update input field value
+            updateTotalPrice(); // Recalculate and display total price
         });
 
         // Initialize total price on page load

@@ -32,9 +32,9 @@ namespace OrderingSystem.Models
         [Required]
         public string Image { get; set; }
 
-        /*[Required]
+        [Required]
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal Price { get; set; }*/
+        public decimal Price { get; set; }
 
         [Required]
         [DataType(DataType.Currency)]

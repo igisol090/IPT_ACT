@@ -116,20 +116,28 @@ namespace OrderingSystem.Controllers
             if (orderedItem == null) return NotFound();
 
             orderedItem.Quantity++;
-            orderedItem.TotalPrice += orderedItem.TotalPrice / (orderedItem.Quantity - 1);
+            // Ensure that TotalPrice is updated using the original unit price
+            orderedItem.TotalPrice = orderedItem.Quantity * orderedItem.Price; // Use a stored UnitPrice property
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(OrderedItems));
         }
+
 
         // Decrement quantity of a T-shirt in the cart
         [HttpPost]
         public async Task<IActionResult> DecrementQuantity(int id)
         {
             var orderedItem = await _context.OrderedTShirts.FindAsync(id);
-            if (orderedItem == null || orderedItem.Quantity <= 1) return NotFound();
+            if (orderedItem == null) return NotFound();
 
-            orderedItem.TotalPrice -= orderedItem.TotalPrice / orderedItem.Quantity;
-            orderedItem.Quantity--;
+            if (orderedItem.Quantity > 1)
+            {
+                orderedItem.Quantity--;
+                // Recalculate TotalPrice based on the unit price and updated quantity
+                orderedItem.TotalPrice = orderedItem.Quantity * orderedItem.Price;
+            }
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(OrderedItems));
         }
