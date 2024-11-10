@@ -65,33 +65,32 @@ namespace OrderingSystem.Controllers
             return View(tShirt);
         }
 
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int id)
         {
-            if (id == null) return NotFound();
+            var orderedTShirt = _context.OrderedTShirts.Find(id); // Use OrderedTShirt instead of TShirt
+            if (orderedTShirt == null)
+            {
+                return NotFound();
+            }
 
-            var orderedTShirt = await _context.OrderedTShirts.FindAsync(id);
-            if (orderedTShirt == null) return NotFound();
-
-            return View("Edit", orderedTShirt);
+            return View(orderedTShirt); // Pass OrderedTShirt to the view
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, OrderedTShirt orderedTShirt)
+        public IActionResult Edit(OrderedTShirt model)
         {
-            if (id != orderedTShirt.Id) return NotFound();
-
             if (ModelState.IsValid)
             {
-                _context.Update(orderedTShirt);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(OrderedItems));
+                _context.Update(model); // Update OrderedTShirt
+                _context.SaveChanges();
+                return RedirectToAction(nameof(Index));
             }
 
-            return View("Edit", orderedTShirt);
+            return View(model);
         }
+    
 
-        public async Task<IActionResult> Delete(int? id)
+    public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
 
